@@ -1,0 +1,8 @@
+/github-catalog
+/catalog
+*.test
+coverage.out
+.env
+/data/
+/bin/
+__pycache__/

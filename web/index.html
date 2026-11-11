@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>团队代码 · GitHub 项目目录</title>
+    <link rel="icon" href="/catalog-mark.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/base.css">
+    <link rel="stylesheet" href="/projects.css">
+    <script src="/projects.js" defer></script>
+    <script src="/rules.js" defer></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="catalog-globalbar">
+          <a id="catalog-return" class="catalog-return" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m10 7-5 5 5 5M5 12h15"/></svg>返回工作台</a>
+          <span class="catalog-globalbar-name">团队代码</span>
+        <div class="catalog-header-actions">
+          <span id="catalog-mode" class="catalog-mode" hidden>演示环境</span>
+          <button type="button" id="catalog-admin-login" disabled>管理员登录</button>
+          <span id="catalog-admin-status" hidden>目录管理员</span>
+          <button type="button" id="catalog-admin-logout" hidden>退出管理</button>
+        </div>
+    </div>
+    <div class="catalog-layout">
+    <aside class="catalog-sidebar" aria-label="团队代码导航">
+      <a href="/" class="catalog-brand" aria-label="团队代码首页"><img src="/icons/robot.svg" width="44" height="44" alt=""><span>团队代码<small>TEAM CODE DIRECTORY</small></span></a>
+      <span class="catalog-nav-label">协作空间</span>
+      <nav class="catalog-nav" aria-label="目录主导航">
+        <button type="button" data-catalog-page="projects" class="selected" aria-current="page"><svg class="gh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>项目目录</button>
+        <button type="button" data-catalog-page="rules"><svg class="gh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg>团队规范</button>
+      </nav>
+      <div class="catalog-sidebar-note"><span>GitHub 协作</span><p>项目说明、成果与开发入口<br>团队共用的协作约定</p></div>
+    </aside>
+    <div class="catalog-workspace">
+    <header class="catalog-header"><div class="catalog-heading"><img id="catalog-page-art" src="/icons/project-folder.svg" alt="" width="46" height="46"><div><h1 id="catalog-page-title">项目目录</h1><p id="catalog-page-subtitle">了解项目用途、已有成果和二次开发入口</p></div></div><div class="catalog-page-status"><span id="catalog-updated">正在读取目录</span><button type="button" id="catalog-reload"><svg class="gh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2l1 4M4 12l1 4a8 8 0 0 0 13 2"/></svg><span id="catalog-reload-label">刷新目录</span></button></div></header>
+    <main class="catalog-main">
+      <p id="catalog-error" role="alert" hidden></p>
+      <section id="content" aria-live="polite"><div class="catalog-loading" role="status"><span></span>正在准备团队项目目录…</div></section>
+    </main>
+    </div>
+    </div>
+    <dialog id="catalog-login-dialog" aria-labelledby="catalog-login-title">
+      <form id="catalog-login-form">
+        <div class="catalog-login-heading"><div><span class="catalog-dialog-eyebrow">DIRECTORY ADMIN</span><h2 id="catalog-login-title">目录管理员登录</h2></div><button type="button" id="catalog-login-close" aria-label="关闭管理员登录">×</button></div>
+        <p class="catalog-login-description">管理目录更新，查看管理员可见的组织项目。</p>
+        <label for="catalog-username">管理员账号<input id="catalog-username" name="username" value="admin" readonly autocomplete="username"></label>
+        <label for="catalog-password">密码<input id="catalog-password" name="password" type="password" required autocomplete="current-password" placeholder="输入目录管理员密码"></label>
+        <p id="catalog-login-error" role="alert"></p>
+        <button type="submit" class="primary" id="catalog-login-submit">登录目录管理</button>
+        <p class="catalog-login-note">此账号仅用于项目目录管理。GitHub 仓库的访问权限由 GitHub 验证。</p>
+      </form>
+    </dialog>
+  </body>
+</html>

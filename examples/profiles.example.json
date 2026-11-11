@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "projects": {
+    "example-team/example-project": {
+      "kind": "team",
+      "title": "项目展示名称",
+      "summary": "填写目标用户、需要解决的问题和当前实现范围。",
+      "scenarios": ["填写一个明确的应用场景"],
+      "capabilities": ["填写已实现的核心功能"],
+      "outputs": [{"title": "结果名称与格式", "description": "说明从什么输入产生结果、如何查看或复现；请替换模板内容。"}],
+      "development": {
+        "requirements": ["填写语言版本、依赖与运行条件"],
+        "quick_start": ["填写实际可执行的安装与启动步骤，不要包含真实凭据"],
+        "entry_points": [{"path": "README.md", "description": "按实际项目替换为源码或配置入口"}],
+        "extension_points": ["填写适合二次开发的模块及边界"],
+        "validation": ["填写复现结果与执行测试的方法"],
+        "limitations": ["填写已知不支持的场景"]
+      },
+      "docs": [{"label": "项目说明", "url": "https://github.com/example-team/example-project/blob/main/README.md"}],
+      "screenshots": [],
+      "maintainer": "待指定项目维护者",
+      "maturity": "资料待完善",
+      "source_note": "模板示例，请用实际源码版本、验证记录和确认日期替换。",
+      "license_note": "填写项目及第三方许可证；没有明确许可时不要默认为可任意复用。"
+    }
+  }
+}

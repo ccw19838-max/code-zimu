@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "projects": {
+    "ccw19838-max/workbench-navigation": {
+      "kind": "team",
+      "title": "统一工作台",
+      "summary": "为团队提供应用入口、统一账号与逐应用授权，并集中查看本机及服务状态、账号操作记录和套件更新。",
+      "scenarios": ["团队从同一入口访问资产、财务和资料平台。", "管理员新增成员、绑定已有业务账号并调整应用角色。", "运维人员检查本机资源、服务健康和统一套件更新状态。"],
+      "capabilities": ["统一登录、退出、修改密码，以及账号停用、重置和授权。", "每应用独立角色与业务账号绑定，统一撤权在后续业务请求生效。", "固定回调、一次性 code、服务端交换及逐请求会话验证。", "主机 CPU、负载、内存、数据盘及服务健康、进程和请求指标。", "最近 500 条账号及授权审计；统一套件升级、备份和失败回退。"],
+      "outputs": [
+        {"title": "团队应用入口", "description": "按成员授权展示业务入口，并在统一网关下进入已接入应用。"},
+        {"title": "权限与操作记录", "description": "保存账号、业务账号绑定、逐应用角色和账号管理审计。"},
+        {"title": "统一发行套件", "description": "固定三个仓库提交，组合程序、进程管理器、对应源码和校验清单。"}
+      ],
+      "development": {
+        "requirements": ["Linux、Go 1.27+；工作台采用 Go 标准库，无第三方 Go 库。", "运行时无需 Python、Node 或数据库服务。", "联调需要同级 lab-asset-system、XRplan 的 dev/cc 检出及各应用独立凭据。"],
+        "quick_start": ["go build -o bin/workbench .", "按 docs/deployment.md 设置首次管理员密码及各应用独立的服务、网关凭据。", "./bin/workbench -addr 127.0.0.1:8080 -public-url http://127.0.0.1:8080 -data ./data -services ./services.json"],
+        "entry_points": [
+          {"path": "services.json", "description": "应用入口、健康地址、固定回调和回环网关配置。"},
+          {"path": "docs/sso.md", "description": "首方统一身份交换与应用接入协议。"},
+          {"path": "docs/deployment.md", "description": "构建、运行参数、凭据、监控和部署要求。"},
+          {"path": "scripts/smoke.py", "description": "使用临时数据联调三个真实 Go 服务。"}
+        ],
+        "extension_points": ["在服务目录中维护应用入口及健康探测。", "按固定回调与逐请求验证协议接入自有业务服务。", "扩展服务展示和监控时保留应用授权及指标边界。", "第三方 SSO、MFA 等应采用标准身份提供方，现有首方协议并非 OAuth/OIDC。"],
+        "validation": ["go test -race ./...", "go vet ./...", "GO_BIN=go python3 scripts/smoke.py", "可选：GO_BIN=go BROWSER_TEST=1 python3 scripts/smoke.py（需要 Playwright 与 Chromium）。"],
+        "limitations": ["单进程写一个数据目录；会话与监控历史在内存，重启清空。", "尚未实现 HA、MFA、第三方 OIDC、多主机采集、容器聚合统计或告警。", "工作台管理员不会自动获得业务管理员角色。", "当前指标是本机及指定进程视角，不代表容器配额。"]
+      },
+      "docs": [
+        {"label": "项目 README", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/dev/cc/README.md"},
+        {"label": "部署与开发入口", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/dev/cc/docs/deployment.md"},
+        {"label": "统一身份协议", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/dev/cc/docs/sso.md"}
+      ],
+      "screenshots": [{"src": "/images/workbench-result.png", "alt": "统一工作台的应用入口及本机状态演示页面", "caption": "脱敏演示结果：应用入口与运行状态，界面中的数量不代表实际生产统计。"}],
+      "maintainer": "待项目确认（仓库：ccw19838-max）",
+      "maturity": "dev/cc 套件集成版本",
+      "source_note": "依据当前 dev/cc README、部署说明和身份协议整理，截图为脱敏演示结果；维护人待项目确认。文档中的验证命令是复验入口，不表示本目录重新验证了所有业务。",
+      "license_note": "当前检出未见项目级 LICENSE；使用或分发前请向维护方确认授权，字体与图标分别保留其许可。"
+    },
+    "ccw19838-max/XRplan": {
+      "kind": "team",
+      "title": "XRplan 团队资料平台",
+      "summary": "按项目整理文档、图片、演示文稿和工程模型，保留原件与历史版本，支持关键词搜索、项目交接及可选智能整理。",
+      "scenarios": ["团队按项目沉淀研发资料、方案和工程文件。", "成员检索既有成果，下载原件或历史版本进行复用。", "项目管理者授予上传权限，并在毕业或人员变动时交接管理权。"],
+      "capabilities": ["项目、封面、介绍、代码链接和上传授权管理。", "拖拽上传、资料元数据编辑、同格式版本追加及历史下载。", "原件按 SHA-256 去重保存，回收站隐藏与恢复不物理删除原件。", "关键词搜索、批量 ZIP 导出、带一致目录快照的完整备份。", "可选 OpenAI Chat Completions 兼容模型；未配置时明确采用有限规则模式。", "Workbench 或可信代理身份接入，保留项目权限、毕业只读和历史归属。"],
+      "outputs": [
+        {"title": "可检索项目资料库", "description": "围绕实际项目组织资料名称、描述、代码链接、上传归属及历史版本。"},
+        {"title": "原件与资料包", "description": "下载当前或历史原件，也可批量导出原件及清单 ZIP。"},
+        {"title": "交接记录与完整备份", "description": "项目交接保留原创建者和上传者；管理员可导出目录、引用原件及配置的完整备份。"}
+      ],
+      "development": {
+        "requirements": ["Go 1.24+；当前平台使用 Go 标准库。", "运行无需数据库、Node 或 DSH。", "PDF 文本提取可选安装 pdftotext。", "团队部署需可信代理或 Workbench；智能服务需另行配置获批准的模型接口。"],
+        "quick_start": ["export XRPLAN_AUTH_MODE=local", "export XRPLAN_LOCAL_USER=developer-001", "export XRPLAN_LOCAL_NAME=开发人员", "export XRPLAN_ADMIN_ID=developer-001", "bash scripts/start-platform.sh -addr 127.0.0.1:8091 -data ./data"],
+        "entry_points": [
+          {"path": "platform", "description": "当前 Go 平台与嵌入式页面模块。"},
+          {"path": "platform/README.md", "description": "业务 API、身份权限和模型配置。"},
+          {"path": "scripts/start-platform.sh", "description": "本地开发启动入口。"},
+          {"path": "docs/IDENTITY.md", "description": "可信代理、Workbench 接入及旧身份迁移。"}
+        ],
+        "extension_points": ["根据平台 API 扩展项目、资料元数据和资料管理流程。", "接入获批准的 Chat Completions 兼容模型，保留密钥只写及结果审核。", "扩展命名规则和资料提取能力，保持原始字节及历史归属不变。", "接入统一身份时保留稳定用户 ID、项目授权及毕业只读规则。"],
+        "validation": ["cd platform", "go test -race ./...", "go vet ./...", "发布前另按文档执行 scripts/build-release.sh、scripts/test-release.sh。"],
+        "limitations": ["单进程、原子 JSON 目录及不可变对象存储，同一数据目录禁止双进程写入。", "当前所有已验证用户可读工作区，尚无私有项目阅读隔离。", "无模型时仅有限指令识别与本地关键词搜索，不是向量检索。", "不提供扫描件 OCR、私有 CAD 几何校验或解析器沙箱。", "单次上传最多 50 文件/64 MB；批量导出最多 100 资料/256 MB；网页备份上限 1 GB。", "完整备份包含模型密钥等私密配置，应按敏感备份管理。"]
+      },
+      "docs": [
+        {"label": "当前平台 README", "url": "https://github.com/ccw19838-max/XRplan/blob/dev/cc/README.md"},
+        {"label": "平台接口与开发", "url": "https://github.com/ccw19838-max/XRplan/blob/dev/cc/platform/README.md"},
+        {"label": "身份接入与迁移", "url": "https://github.com/ccw19838-max/XRplan/blob/dev/cc/docs/IDENTITY.md"}
+      ],
+      "screenshots": [{"src": "/images/xrplan-result.png", "alt": "XRplan 项目资料列表与资料信息演示页面", "caption": "脱敏演示结果：资料归档、项目组织与检索入口。"}],
+      "maintainer": "待项目确认（仓库：ccw19838-max）",
+      "maturity": "Go 应用阶段 · dev/cc 套件集成",
+      "source_note": "依据当前 dev/cc README、platform/README.md 和 docs/IDENTITY.md 整理，截图为脱敏演示结果；维护人待项目确认。旧 DSH 架构文档不作为当前 Go 平台能力依据。",
+      "license_note": "当前检出未见项目级 LICENSE；使用或分发前请向维护方确认授权，字体与图标另有许可。"
+    },
+    "ccw19838-max/lab-asset-system": {
+      "kind": "team",
+      "title": "实验室资产与财务平台",
+      "summary": "在同一 Go 服务和 SQLite 业务库中管理实物资产、借还审批、采购支出、发票原件、开票记录及财务分析，资产与财务保留独立页面入口。",
+      "scenarios": ["实验室登记设备、审批成员借用并追踪归还。", "财务人员核对采购、报销状态与发票原件。", "团队保存开票申请、采购分类、经费来源及业务操作记录。"],
+      "capabilities": ["资产台账、筛选排序、状态和详情管理。", "借用及归还申请审批、管理员直接登记与历史记录。", "采购手工录入、报销状态、分类和经费来源管理。", "PDF/JPG/PNG/WEBP 发票存档、预览下载及多对多采购关联。", "可选图片识别，原件、发票、采购、关联与日志事务提交。", "开票记录、年度财务分析、CSV 导出和数据库一致快照。"],
+      "outputs": [
+        {"title": "资产与借还台账", "description": "记录实物状态、借用人、审批过程及正式借还历史。"},
+        {"title": "采购与发票档案", "description": "保留采购金额、报销状态、发票原件及对应关系，支持核对追溯。"},
+        {"title": "财务汇总与导出", "description": "形成年度分析、账号可见的资产/采购 CSV，以及数据库一致快照。"}
+      ],
+      "development": {
+        "requirements": ["开发需要 Go 1.27.3+，前端为原生 JS，业务数据使用无 CGO SQLite。", "生产运行仅需二进制与业务数据，无 Python、Node 或 Go 编译器依赖。", "图片自动识别可选配置支持图片输入的 Chat Completions 兼容视觉 API。"],
+        "quick_start": ["make build", "./bin/lab-asset-system -data-dir ./data -addr 127.0.0.1:8000", "./bin/lab-asset-system -healthcheck -addr 127.0.0.1:8000"],
+        "entry_points": [
+          {"path": "cmd/lab-asset-system", "description": "程序入口、参数、健康检查和优雅关闭。"},
+          {"path": "internal/server", "description": "业务 API、SQL、权限、事务及发票识别。"},
+          {"path": "static", "description": "嵌入程序的 HTML、CSS 和 JS。"},
+          {"path": "internal/cgofreesqlite", "description": "Homebox SQLite 驱动适配。"},
+          {"path": "tests", "description": "HTTP 业务契约、前端测试和旧数据库兼容夹具。"}
+        ],
+        "extension_points": ["从 internal/server 扩展业务字段和接口，保持事务及成员数据权限。", "通过独立视觉配置接入识别服务，保留金额校验、重复票号保护及失败回滚。", "在 static 调整桌面业务界面，并同步重生成使用教程。", "接入 Workbench 时绑定已有用户名，保留历史业务归属与本地停用限制。"],
+        "validation": ["make test", "make test-contract", "make test-browser（需要 Playwright 与 Chromium）", "浏览器与教程识别验收使用本地模拟视觉服务，不代表第三方模型准确率已验证。"],
+        "limitations": ["采购支出和实物资产分别登记，不会自动互相创建。", "当前识别自动生成支持 JPG/PNG/WEBP；PDF 仅存档及手工关联。", "系统登记开票状态，不执行正式税务开具、作废、红冲或转账报销。", "网页数据库备份不含 uploads 原件，完整恢复须另备附件。", "资产、财务共用服务和业务库，进一步细分权限仍待设计。", "当前 CSV 导出为账号可见的全量记录，不随页面筛选缩小。"]
+      },
+      "docs": [
+        {"label": "资产与财务 README", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/README.md"},
+        {"label": "开发与验证", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/docs/development.md"},
+        {"label": "部署与备份", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/docs/deployment.md"},
+        {"label": "许可证", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/LICENSE"}
+      ],
+      "screenshots": [{"src": "/images/assets-result.png", "alt": "实验室资产台账和筛选操作的演示页面", "caption": "脱敏演示结果：资产与借还工作流；数据及识别示例不代表生产记录或外部模型实测。"}],
+      "maintainer": "待项目确认（仓库：ccw19838-max）",
+      "maturity": "dev/cc 套件集成版本 · 资产/财务独立入口",
+      "source_note": "依据当前 dev/cc README、docs/development.md、docs/deployment.md 整理，截图为脱敏演示结果；维护人待项目确认。教程使用独立演示数据与模拟识别服务。",
+      "license_note": "AGPL-3.0-only。复用了 Homebox 的无 CGO SQLite 驱动；网络部署需提供与运行版本对应的完整源码，按文档配置 LAB_SOURCE_URL。"
+    },
+    "golang/go": {
+      "kind": "reference",
+      "title": "Go 语言与标准库",
+      "summary": "Go 语言实现、工具链和标准库的官方开源仓库，可作为团队 Go 服务开发与源码阅读的参考。",
+      "scenarios": ["查阅标准库实现及 Go 工具链行为。", "了解语言项目的贡献流程和问题追踪方式。"],
+      "capabilities": ["提供 Go 编译器、运行时、标准库及相关工具的源码。", "维护语言实现、测试与贡献流程的参考资料。"],
+      "outputs": [{"title": "源码与工具链参考", "description": "用于定位标准库行为、理解语言实现并进入官方贡献流程。"}],
+      "development": {
+        "requirements": ["从源码构建所需的引导工具链版本、操作系统与依赖，以官方贡献文档为准。"],
+        "quick_start": ["先阅读仓库 README 与 CONTRIBUTING.md，再按官方说明准备源码开发环境。"],
+        "entry_points": [{"path": "src", "description": "编译器、运行时和标准库源码。"}, {"path": "CONTRIBUTING.md", "description": "官方贡献入口。"}],
+        "extension_points": ["团队应用优先使用公开标准库接口；修改工具链前应了解官方兼容性与贡献要求。"],
+        "validation": ["验证方式以 Go 官方源码构建和测试指南为准；本目录未构建或测试该仓库。"],
+        "limitations": ["这是外部参考项目，未作为团队应用部署。", "目录中的分支、时间和统计是演示元数据，不是实时项目状态。"]
+      },
+      "docs": [{"label": "官方仓库 README", "url": "https://github.com/golang/go/blob/master/README.md"}, {"label": "贡献指南", "url": "https://github.com/golang/go/blob/master/CONTRIBUTING.md"}, {"label": "许可证", "url": "https://github.com/golang/go/blob/master/LICENSE"}],
+      "screenshots": [],
+      "maintainer": "Go 项目贡献者",
+      "maturity": "外部开源参考项目",
+      "source_note": "依据 Go 项目的公开定位与仓库文档整理参考说明；未在本演示中构建、部署、测试或进行性能验证。",
+      "license_note": "仓库主要采用 BSD 3-Clause 许可；具体文件与第三方代码仍应按仓库声明核对。"
+    },
+    "microsoft/vscode": {
+      "kind": "reference",
+      "title": "Visual Studio Code 源码参考",
+      "summary": "Code - OSS 编辑器源码仓库，可用于了解编辑器架构、开发工作流和扩展生态；官方发行产品与源码仓库的许可条款有所区别。",
+      "scenarios": ["研究编辑器的工作台界面与交互组织。", "为团队开发工具规划编辑器扩展，并核对官方扩展接口。"],
+      "capabilities": ["提供编辑器工作台、语言支持集成和扩展主机等源码。", "通过公开扩展机制对接语言工具和开发流程。"],
+      "outputs": [{"title": "编辑器源码与扩展参考", "description": "用于研究编辑器结构或从官方文档进入扩展开发。"}],
+      "development": {
+        "requirements": ["源码构建对 Node、包管理器与平台依赖的要求以仓库当前贡献指南为准。"],
+        "quick_start": ["先阅读 README.md 与 CONTRIBUTING.md，区分开发扩展和构建编辑器源码两种工作。"],
+        "entry_points": [{"path": "src/vs", "description": "编辑器、工作台与平台层源码。"}, {"path": "extensions", "description": "仓库内置扩展。"}, {"path": "CONTRIBUTING.md", "description": "官方贡献和开发入口。"}],
+        "extension_points": ["一般团队集成优先使用受支持的扩展 API；修改编辑器源码需单独维护构建与更新流程。"],
+        "validation": ["使用官方贡献指南规定的构建与测试流程；本目录未构建或测试该仓库。"],
+        "limitations": ["这是外部参考项目，未与团队工作台完成集成。", "不能将 Code - OSS 的源码许可直接等同于微软官方发行包或市场服务的全部使用条款。"]
+      },
+      "docs": [{"label": "官方仓库 README", "url": "https://github.com/microsoft/vscode/blob/main/README.md"}, {"label": "贡献指南", "url": "https://github.com/microsoft/vscode/blob/main/CONTRIBUTING.md"}, {"label": "源码许可证", "url": "https://github.com/microsoft/vscode/blob/main/LICENSE.txt"}],
+      "screenshots": [],
+      "maintainer": "Microsoft 与社区贡献者",
+      "maturity": "外部开源参考项目",
+      "source_note": "依据 Code - OSS 的公开定位与仓库文档整理参考说明；未在本演示中构建、部署或验证扩展兼容性。",
+      "license_note": "Code - OSS 仓库采用 MIT 许可；Visual Studio Code 官方发行包及相关服务另有条款。"
+    },
+    "pallets/flask": {
+      "kind": "reference",
+      "title": "Flask Web 应用参考",
+      "summary": "轻量 Python WSGI Web 框架，可作为接口原型、路由、模板和测试组织的参考。",
+      "scenarios": ["为小型 Python 服务和接口原型选型。", "学习应用工厂、蓝图及测试客户端的组织方式。"],
+      "capabilities": ["提供请求路由、模板渲染、会话和测试客户端等 Web 开发基础能力。", "可通过扩展与应用结构组合数据库、认证等业务组件。"],
+      "outputs": [{"title": "Web 框架与示例参考", "description": "用于理解轻量 Web 应用的基础结构及扩展方式。"}],
+      "development": {
+        "requirements": ["使用仓库当前版本支持的 Python；具体版本和开发依赖以项目配置及贡献指南为准。"],
+        "quick_start": ["先阅读 README.md、docs 与 examples，再在隔离的 Python 环境中按官方教程运行示例。"],
+        "entry_points": [{"path": "src/flask", "description": "框架实现。"}, {"path": "examples", "description": "示例应用。"}, {"path": "tests", "description": "框架测试。"}],
+        "extension_points": ["通过蓝图和应用工厂组织业务；认证、数据库和部署方案需根据项目需求单独设计。"],
+        "validation": ["按仓库贡献指南运行测试；本目录未运行 Flask 示例或测试。"],
+        "limitations": ["这是外部参考项目，尚未作为团队应用部署。", "开发服务器只适合本地开发，正式部署应使用适当的 WSGI 服务与部署配置。"]
+      },
+      "docs": [{"label": "官方仓库 README", "url": "https://github.com/pallets/flask/blob/main/README.md"}, {"label": "官方文档源码", "url": "https://github.com/pallets/flask/tree/main/docs"}, {"label": "许可证", "url": "https://github.com/pallets/flask/blob/main/LICENSE.txt"}],
+      "screenshots": [],
+      "maintainer": "Pallets 与社区贡献者",
+      "maturity": "外部开源参考项目",
+      "source_note": "依据 Flask 的公开定位与仓库文档整理参考说明；未在本演示中运行示例、部署服务或测试性能。",
+      "license_note": "Flask 采用 BSD 3-Clause 许可；依赖与扩展的许可应分别核对。"
+    }
+  }
+}

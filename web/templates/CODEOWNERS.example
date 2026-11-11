@@ -1,0 +1,20 @@
+# 配套建议规则 v0.1，待团队采纳。
+# 复制到 .github/CODEOWNERS 前，请替换真实组织、Team、用户和项目路径。
+# 下方全部为注释，尚未启用任何所有者规则。
+# CODEOWNERS 中的用户或 Team 必须实际存在，并具备该仓库的 Write 权限。
+# Team 还必须可见；不要填写私有/secret Team 或不存在的示例身份。
+# 同一路径命中多条规则时，最后匹配的一条生效；具体规则应放在通用规则后。
+# 仅添加此文件不会强制审批；需按组织计划和仓库类型确认并配置相应规则。
+# GitHub 使用 PR 目标分支中的 CODEOWNERS；请在实际受评审目标分支维护它。
+# 占位符 YOUR_ORG、YOUR_MAINTAINERS_TEAM、YOUR_BACKUP_USER 等必须替换。
+
+# 全仓库默认评审人，两个身份请写在同一行：
+# * @YOUR_ORG/YOUR_MAINTAINERS_TEAM @YOUR_BACKUP_USER
+
+# 以下目录只是语法示例；替换为项目中实际存在的目录后再取消注释：
+# /YOUR_SOURCE_DIRECTORY/ @YOUR_ORG/YOUR_DEVELOPERS_TEAM
+# /YOUR_DOCS_DIRECTORY/ @YOUR_ORG/YOUR_DOCS_TEAM
+
+# 保护协作规则和工作流的维护入口，按项目需要启用：
+# /.github/ @YOUR_ORG/YOUR_MAINTAINERS_TEAM
+# /CONTRIBUTING.md @YOUR_ORG/YOUR_MAINTAINERS_TEAM
