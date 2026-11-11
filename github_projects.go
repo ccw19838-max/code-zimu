@@ -78,8 +78,8 @@ func newGitHubCatalog(cfg Config) *githubCatalog {
 
 func (a *App) githubRoutes() {
 	a.mux.HandleFunc("GET /api/github/projects", func(w http.ResponseWriter, r *http.Request) {
-		_, authenticated := a.session(r)
-		a.githubProjects(w, r, authenticated, false)
+		session, authenticated := a.session(r)
+		a.githubProjects(w, r, authenticated && session.Role == "admin", false)
 	})
 	a.mux.HandleFunc("POST /api/github/refresh", a.requireAdmin(func(w http.ResponseWriter, r *http.Request) {
 		a.githubProjects(w, r, true, true)

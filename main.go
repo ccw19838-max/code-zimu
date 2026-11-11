@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github-catalog/internal/workbenchsso"
 )
 
 func main() {
@@ -19,7 +21,11 @@ func main() {
 	navigation := flag.String("navigation-url", "", "optional link back to the navigation application")
 	profiles := flag.String("profiles", "", "optional server-side JSON project profiles for live repositories")
 	flag.Parse()
-	a, err := New(Config{PublicURL: *public, GitHubDemo: *demo, GitHubOrg: *org, NavigationURL: *navigation, ProfilesPath: *profiles}, os.Getenv("GITHUB_CATALOG_ADMIN_PASSWORD"))
+	sso, err := workbenchsso.FromEnv("code-zimu")
+	if err != nil {
+		log.Fatal(err)
+	}
+	a, err := New(Config{PublicURL: *public, GitHubDemo: *demo, GitHubOrg: *org, NavigationURL: *navigation, ProfilesPath: *profiles, SSO: sso}, os.Getenv("GITHUB_CATALOG_ADMIN_PASSWORD"))
 	if err != nil {
 		log.Fatal(err)
 	}

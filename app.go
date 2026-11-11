@@ -19,6 +19,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github-catalog/internal/workbenchsso"
 )
 
 //go:embed web/*
@@ -32,11 +34,12 @@ type Config struct {
 	GitHubDemo    bool
 	GitHubOrg     string
 	ProfilesPath  string
+	SSO           *workbenchsso.Client
 }
 
 func (c Config) validate() error {
 	u, err := url.Parse(c.PublicURL)
-	if err != nil || u.Host == "" || u.User != nil || u.Path != "" || u.RawQuery != "" || u.Fragment != "" || u.Scheme != "http" && u.Scheme != "https" {
+	if err != nil || u.Hostname() == "" || u.User != nil || u.Path != "" || u.RawQuery != "" || u.ForceQuery || strings.Contains(c.PublicURL, "#") || u.Scheme != "http" && u.Scheme != "https" {
 		return errors.New("public-url must be an HTTP(S) origin without a path")
 	}
 	if c.NavigationURL != "" {
@@ -47,6 +50,9 @@ func (c Config) validate() error {
 	}
 	if c.GitHubDemo && c.GitHubOrg != "" {
 		return errors.New("demo and github-org cannot be used together")
+	}
+	if c.SSO != nil && (c.SSO.App != "code-zimu" || c.SSO.Public != c.PublicURL || c.SSO.GatewaySecret != "") {
+		return errors.New("code-zimu SSO requires its own public origin and code-zimu client ID, without gateway mode")
 	}
 	if c.GitHubOrg != "" && !githubOrgRE.MatchString(c.GitHubOrg) {
 		return errors.New("github-org must be an organization login, not a URL")
@@ -60,6 +66,8 @@ func (c Config) validate() error {
 type Session struct {
 	CSRF    string
 	Expires time.Time
+	Name    string
+	Role    string
 }
 
 type loginAttempt struct {
@@ -79,14 +87,18 @@ type App struct {
 	globalLogin  loginAttempt
 	mux          *http.ServeMux
 	github       *githubCatalog
+	handler      http.Handler
 }
 
 func New(cfg Config, password string) (*App, error) {
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
-	if cfg.GitHubOrg != "" && len(password) < 12 || password != "" && len(password) < 12 {
+	if cfg.SSO == nil && (cfg.GitHubOrg != "" && len(password) < 12 || password != "" && len(password) < 12) {
 		return nil, errors.New("GITHUB_CATALOG_ADMIN_PASSWORD must have at least 12 characters; required for live mode")
+	}
+	if cfg.SSO != nil {
+		cfg.NavigationURL = cfg.SSO.Portal
 	}
 	profiles, err := loadProfileFile(cfg.ProfilesPath)
 	if err != nil {
@@ -97,10 +109,11 @@ func New(cfg Config, password string) (*App, error) {
 	if cfg.ProfilesPath != "" {
 		a.github.profiles = profiles
 	}
-	if password != "" {
+	if password != "" && cfg.SSO == nil {
 		a.passwordSalt = randomToken()
 		a.passwordHash = passwordKey(password, a.passwordSalt)
 	}
+	a.handler = cfg.SSO.Wrap(http.HandlerFunc(a.serveHTTP))
 	a.mux.HandleFunc("GET /api/session", func(w http.ResponseWriter, r *http.Request) { jsonOut(w, a.sessionInfo(r)) })
 	a.mux.HandleFunc("POST /api/login", a.login)
 	a.mux.HandleFunc("POST /api/logout", a.requireAdmin(a.logout))
@@ -135,6 +148,10 @@ func New(cfg Config, password string) (*App, error) {
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.handler.ServeHTTP(w, r)
+}
+
+func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("X-Frame-Options", "DENY")
@@ -160,6 +177,9 @@ type sessionResponse struct {
 	CSRF          string `json:"csrf"`
 	Mode          string `json:"mode"`
 	NavigationURL string `json:"navigation_url"`
+	AuthMode      string `json:"auth_mode"`
+	Name          string `json:"name,omitempty"`
+	Role          string `json:"role,omitempty"`
 }
 
 func (a *App) sessionInfo(r *http.Request) sessionResponse {
@@ -170,10 +190,21 @@ func (a *App) sessionInfo(r *http.Request) sessionResponse {
 	} else if a.cfg.GitHubOrg != "" {
 		mode = "live"
 	}
-	return sessionResponse{Authenticated: authenticated, CSRF: s.CSRF, Mode: mode, NavigationURL: a.cfg.NavigationURL}
+	authMode := "local"
+	if a.cfg.SSO != nil {
+		authMode = "workbench"
+	}
+	return sessionResponse{Authenticated: authenticated, CSRF: s.CSRF, Mode: mode, NavigationURL: a.cfg.NavigationURL, AuthMode: authMode, Name: s.Name, Role: s.Role}
 }
 
 func (a *App) session(r *http.Request) (Session, bool) {
+	if a.cfg.SSO != nil {
+		identity, ok := workbenchsso.FromRequest(r)
+		if !ok {
+			return Session{}, false
+		}
+		return Session{CSRF: a.cfg.SSO.CSRF(r), Name: identity.Name, Role: identity.Role}, true
+	}
 	cookie, err := r.Cookie(sessionCookie)
 	if err != nil {
 		return Session{}, false
@@ -185,6 +216,9 @@ func (a *App) session(r *http.Request) (Session, bool) {
 		delete(a.sessions, cookie.Value)
 		return Session{}, false
 	}
+	if s.Role == "" {
+		s.Role = "admin"
+	}
 	return s, true
 }
 
@@ -193,6 +227,10 @@ func (a *App) requireAdmin(next http.HandlerFunc) http.HandlerFunc {
 		s, ok := a.session(r)
 		if !ok {
 			problem(w, http.StatusUnauthorized, "请先登录项目目录管理员账号")
+			return
+		}
+		if s.Role != "admin" {
+			problem(w, http.StatusForbidden, "需要代码目录管理员权限")
 			return
 		}
 		if subtle.ConstantTimeCompare([]byte(r.Header.Get("X-CSRF-Token")), []byte(s.CSRF)) != 1 {
@@ -257,7 +295,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	}
 	now := time.Now()
 	id := randomToken()
-	session := Session{CSRF: randomToken(), Expires: now.Add(8 * time.Hour)}
+	session := Session{CSRF: randomToken(), Expires: now.Add(8 * time.Hour), Name: "目录管理员", Role: "admin"}
 	a.mu.Lock()
 	for key, old := range a.sessions {
 		if !now.Before(old.Expires) {
@@ -275,7 +313,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	a.sessions[id] = session
 	a.mu.Unlock()
 	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: id, Path: "/", HttpOnly: true, Secure: a.secure, SameSite: http.SameSiteStrictMode, MaxAge: 8 * 60 * 60, Expires: session.Expires})
-	jsonOut(w, sessionResponse{Authenticated: true, CSRF: session.CSRF, Mode: a.sessionInfo(r).Mode, NavigationURL: a.cfg.NavigationURL})
+	jsonOut(w, sessionResponse{Authenticated: true, CSRF: session.CSRF, Mode: a.sessionInfo(r).Mode, NavigationURL: a.cfg.NavigationURL, AuthMode: "local", Name: session.Name, Role: session.Role})
 }
 
 func (a *App) logout(w http.ResponseWriter, r *http.Request) {

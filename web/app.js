@@ -13,9 +13,12 @@
   }
   function updateHeader() {
     const busy = authBusy || checkingSession;
+    const workbench = session?.auth_mode === "workbench";
     $("#catalog-admin-login").hidden = !!session?.authenticated;
     $("#catalog-admin-logout").hidden = !session?.authenticated;
     $("#catalog-admin-status").hidden = !session?.authenticated;
+    $("#catalog-admin-status").textContent = workbench ? `${session.name || "团队成员"}${session.role === "admin" ? " · 目录管理员" : ""}` : "目录管理员";
+    $("#catalog-admin-logout").textContent = workbench ? "全局退出" : "退出管理";
     $("#catalog-mode").hidden = session?.mode !== "demo";
     $("#catalog-admin-login").disabled = busy || !session;
     $("#catalog-admin-logout").disabled = busy;
@@ -75,6 +78,13 @@
     try { body = await response.json(); } catch { throw Error("服务响应异常，请稍后重试。"); }
     if (generation !== epoch) throw Error("登录状态已变化，请重新操作。");
     if (!response.ok) {
+      if (response.status === 401 && body.login_url === "/auth/sso/login") {
+        generation++;
+        window.githubCatalog.reset();
+        $("#content").replaceChildren();
+        location.replace(body.login_url);
+        throw Error("统一会话已失效，请重新登录。");
+      }
       if (response.status === 401 && path !== "/api/login" && session?.authenticated) {
         endSession(true);
       }
@@ -217,6 +227,7 @@
       if (epoch !== generation) return;
       replaceSession({ ...session, ...value, authenticated: false, csrf: "" });
       announceLogout();
+      if (session.auth_mode === "workbench") location.replace(session.navigation_url);
     } catch (error) {
       if (epoch === generation) {
         $("#catalog-error").textContent = "退出管理未完成：" + error.message;
@@ -234,7 +245,7 @@
   window.addEventListener("focus", () => { void start(); });
   window.addEventListener("pageshow", () => { void start(); });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void start(); });
-  setInterval(() => { if (document.visibilityState === "visible" && session?.authenticated) void start(); }, 60000);
+  setInterval(() => { if (document.visibilityState === "visible" && session?.authenticated) void start(); }, 15000);
   updateHeader();
   void start();
 })();

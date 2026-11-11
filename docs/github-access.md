@@ -23,7 +23,7 @@ GitHub 官方的 [List organization repositories](https://docs.github.com/en/res
 
 使用 `-demo` 查看示例目录，使用 `-github-org <组织名>` 查询真实目录；两种模式互斥。`-github-org` 填组织登录名，不是 URL。
 
-真实模式需要设置 `GITHUB_CATALOG_ADMIN_PASSWORD`，至少 12 个字符，用于本目录服务自己的管理员登录。它与 GitHub 密码和 GitHub API 令牌分别管理。GitHub 令牌由服务端环境变量 `GITHUB_CATALOG_TOKEN` 提供；只读取公开目录时可以留空。
+独立登录的真实模式需要设置 `GITHUB_CATALOG_ADMIN_PASSWORD`，至少 12 个字符，用于本目录服务自己的管理员登录；启用可选 [Workbench SSO](sso-contract.md) 后禁用该密码，改用导航分配的目录角色。目录身份与 GitHub 密码及 GitHub API 令牌分别管理。GitHub 令牌由服务端环境变量 `GITHUB_CATALOG_TOKEN` 提供；只读取公开目录时可以留空。
 
 在本项目目录中，可以用下面的方式临时验证真实组织：
 
@@ -91,7 +91,7 @@ GitHub App 的安装令牌有效期为 **1 小时**。正式服务应由后端�
 1. 创建 GitHub Organization，确定所有者、成员 Team 和仓库权限；将准备集中管理的团队仓库转入组织。
 2. 先安装只有仓库元数据读取权限的 GitHub App，或用受限 fine-grained PAT 验证真实目录。确认组织策略审批与仓库选择范围。
 3. 配置服务器的组织名和凭据，验证公开目录及管理员私有目录；正式使用 App 时实现短期安装令牌轮换。
-4. 接入 GitHub 用户授权，配置真实回调地址和服务端凭据存储，完成目录服务的成员身份绑定与私有目录访问控制。如需与外部系统统一登录，应独立设计 SSO 接入。
+4. 若需要按每个人的 GitHub 权限展示私有目录，继续接入 GitHub 用户授权、真实回调和服务端凭据存储；这与已支持的 Workbench 统一登录分开。当前 SSO 普通成员仍只能看公开仓库，不会因为进入目录而获得 GitHub 组织或仓库权限。
 5. 确定成员准入规则后，再独立启用组织管理权限、真实邀请、成员状态确认和 Team 分配。
 
 若以后需要局域网备份，可以让 Forgejo 从 GitHub 单向拉取经过授权的组织仓库，或运行专门的备份任务。目录索引和代码备份需要不同权限，当前实现提供目录索引。

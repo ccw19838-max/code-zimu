@@ -161,6 +161,9 @@ func TestStandaloneConfigAndAnonymousDemo(t *testing.T) {
 		{Config{PublicURL: "http://catalog.test", GitHubOrg: "example-team"}, ""},
 		{Config{PublicURL: "http://catalog.test", GitHubDemo: true}, "short"},
 		{Config{PublicURL: "http://catalog.test/path", GitHubDemo: true}, ""},
+		{Config{PublicURL: "http://catalog.test?", GitHubDemo: true}, ""},
+		{Config{PublicURL: "http://catalog.test#", GitHubDemo: true}, ""},
+		{Config{PublicURL: "http://:80", GitHubDemo: true}, ""},
 		{Config{PublicURL: "http://catalog.test", NavigationURL: "javascript:alert(1)"}, ""},
 	} {
 		if _, err := New(test.config, test.password); err == nil {
