@@ -1,5 +1,7 @@
 # 独立仓库开发约定
 
+- 稳定分支为 `main`，当前开发基线为 `codex/v010`；提交与合并按 `CONTRIBUTING.md`。
+
 - 本项目是独立端口、独立前端的代码目录，不合并工作台页面或进程管理。构建和测试不依赖相邻仓库、父目录 go.work 或其他项目数据。Go 1.24+。
 - 根目录执行 `GOWORK=off go test -race ./...`、`go vet ./...`、`node --check web/app.js`。SSO 契约单测使用本地 mock，无需真实导航/GitHub 凭据。
 - 可选 Workbench SSO 的约定在 `docs/sso-contract.md`。`internal/workbenchsso` 与受控应用适配器/契约测试保持 v1 兼容。开启后禁用旧目录密码及 Cookie，不能回退绕过认证。

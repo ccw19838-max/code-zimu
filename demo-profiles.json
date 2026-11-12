@@ -13,7 +13,7 @@
         {"title": "统一发行套件", "description": "固定三个仓库提交，组合程序、进程管理器、对应源码和校验清单。"}
       ],
       "development": {
-        "requirements": ["Linux、Go 1.27+；工作台采用 Go 标准库，无第三方 Go 库。", "运行时无需 Python、Node 或数据库服务。", "联调需要同级 lab-asset-system、XRplan 的 dev/cc 检出及各应用独立凭据。"],
+        "requirements": ["Linux、Go 1.27+；工作台采用 Go 标准库，无第三方 Go 库。", "运行时无需 Python、Node 或数据库服务。", "跨应用验收可使用独立二进制；各仓库单测自带认证 mock，联调凭据分别配置。"],
         "quick_start": ["go build -o bin/workbench .", "按 docs/deployment.md 设置首次管理员密码及各应用独立的服务、网关凭据。", "./bin/workbench -addr 127.0.0.1:8080 -public-url http://127.0.0.1:8080 -data ./data -services ./services.json"],
         "entry_points": [
           {"path": "services.json", "description": "应用入口、健康地址、固定回调和回环网关配置。"},
@@ -26,14 +26,14 @@
         "limitations": ["单进程写一个数据目录；会话与监控历史在内存，重启清空。", "尚未实现 HA、MFA、第三方 OIDC、多主机采集、容器聚合统计或告警。", "工作台管理员不会自动获得业务管理员角色。", "当前指标是本机及指定进程视角，不代表容器配额。"]
       },
       "docs": [
-        {"label": "项目 README", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/dev/cc/README.md"},
-        {"label": "部署与开发入口", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/dev/cc/docs/deployment.md"},
-        {"label": "统一身份协议", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/dev/cc/docs/sso.md"}
+        {"label": "项目 README", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/main/README.md"},
+        {"label": "部署与开发入口", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/main/docs/deployment.md"},
+        {"label": "统一身份协议", "url": "https://github.com/ccw19838-max/workbench-navigation/blob/main/docs/sso.md"}
       ],
       "screenshots": [{"src": "/images/workbench-result.png", "alt": "统一工作台的应用入口及本机状态演示页面", "caption": "脱敏演示结果：应用入口与运行状态，界面中的数量不代表实际生产统计。"}],
       "maintainer": "待项目确认（仓库：ccw19838-max）",
-      "maturity": "dev/cc 套件集成版本",
-      "source_note": "依据当前 dev/cc README、部署说明和身份协议整理，截图为脱敏演示结果；维护人待项目确认。文档中的验证命令是复验入口，不表示本目录重新验证了所有业务。",
+      "maturity": "main 套件稳定版本",
+      "source_note": "依据当前 main README、部署说明和身份协议整理，截图为脱敏演示结果；维护人待项目确认。文档中的验证命令是复验入口，不表示本目录重新验证了所有业务。",
       "license_note": "当前检出未见项目级 LICENSE；使用或分发前请向维护方确认授权，字体与图标分别保留其许可。"
     },
     "ccw19838-max/XRplan": {
@@ -61,14 +61,14 @@
         "limitations": ["单进程、原子 JSON 目录及不可变对象存储，同一数据目录禁止双进程写入。", "当前所有已验证用户可读工作区，尚无私有项目阅读隔离。", "无模型时仅有限指令识别与本地关键词搜索，不是向量检索。", "不提供扫描件 OCR、私有 CAD 几何校验或解析器沙箱。", "单次上传最多 50 文件/64 MB；批量导出最多 100 资料/256 MB；网页备份上限 1 GB。", "完整备份包含模型密钥等私密配置，应按敏感备份管理。"]
       },
       "docs": [
-        {"label": "当前平台 README", "url": "https://github.com/ccw19838-max/XRplan/blob/dev/cc/README.md"},
-        {"label": "平台接口与开发", "url": "https://github.com/ccw19838-max/XRplan/blob/dev/cc/platform/README.md"},
-        {"label": "身份接入与迁移", "url": "https://github.com/ccw19838-max/XRplan/blob/dev/cc/docs/IDENTITY.md"}
+        {"label": "当前平台 README", "url": "https://github.com/ccw19838-max/XRplan/blob/main/README.md"},
+        {"label": "平台接口与开发", "url": "https://github.com/ccw19838-max/XRplan/blob/main/platform/README.md"},
+        {"label": "身份接入与迁移", "url": "https://github.com/ccw19838-max/XRplan/blob/main/docs/IDENTITY.md"}
       ],
       "screenshots": [{"src": "/images/xrplan-result.png", "alt": "XRplan 项目资料列表与资料信息演示页面", "caption": "脱敏演示结果：资料归档、项目组织与检索入口。"}],
       "maintainer": "待项目确认（仓库：ccw19838-max）",
       "maturity": "Go 应用阶段 · dev/cc 套件集成",
-      "source_note": "依据当前 dev/cc README、platform/README.md 和 docs/IDENTITY.md 整理，截图为脱敏演示结果；维护人待项目确认。旧 DSH 架构文档不作为当前 Go 平台能力依据。",
+      "source_note": "依据当前 main README、platform/README.md 和 docs/IDENTITY.md 整理，截图为脱敏演示结果；维护人待项目确认。旧 DSH 架构文档不作为当前 Go 平台能力依据。",
       "license_note": "当前检出未见项目级 LICENSE；使用或分发前请向维护方确认授权，字体与图标另有许可。"
     },
     "ccw19838-max/lab-asset-system": {
@@ -97,15 +97,15 @@
         "limitations": ["采购支出和实物资产分别登记，不会自动互相创建。", "当前识别自动生成支持 JPG/PNG/WEBP；PDF 仅存档及手工关联。", "系统登记开票状态，不执行正式税务开具、作废、红冲或转账报销。", "网页数据库备份不含 uploads 原件，完整恢复须另备附件。", "资产、财务共用服务和业务库，进一步细分权限仍待设计。", "当前 CSV 导出为账号可见的全量记录，不随页面筛选缩小。"]
       },
       "docs": [
-        {"label": "资产与财务 README", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/README.md"},
-        {"label": "开发与验证", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/docs/development.md"},
-        {"label": "部署与备份", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/docs/deployment.md"},
-        {"label": "许可证", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/dev/cc/LICENSE"}
+        {"label": "资产与财务 README", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/main/README.md"},
+        {"label": "开发与验证", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/main/docs/development.md"},
+        {"label": "部署与备份", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/main/docs/deployment.md"},
+        {"label": "许可证", "url": "https://github.com/ccw19838-max/lab-asset-system/blob/main/LICENSE"}
       ],
       "screenshots": [{"src": "/images/assets-result.png", "alt": "实验室资产台账和筛选操作的演示页面", "caption": "脱敏演示结果：资产与借还工作流；数据及识别示例不代表生产记录或外部模型实测。"}],
       "maintainer": "待项目确认（仓库：ccw19838-max）",
-      "maturity": "dev/cc 套件集成版本 · 资产/财务独立入口",
-      "source_note": "依据当前 dev/cc README、docs/development.md、docs/deployment.md 整理，截图为脱敏演示结果；维护人待项目确认。教程使用独立演示数据与模拟识别服务。",
+      "maturity": "main 套件稳定版本 · 资产/财务独立入口",
+      "source_note": "依据当前 main README、docs/development.md、docs/deployment.md 整理，截图为脱敏演示结果；维护人待项目确认。教程使用独立演示数据与模拟识别服务。",
       "license_note": "AGPL-3.0-only。复用了 Homebox 的无 CGO SQLite 驱动；网络部署需提供与运行版本对应的完整源码，按文档配置 LAB_SOURCE_URL。"
     },
     "golang/go": {
