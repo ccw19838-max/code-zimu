@@ -1,0 +1,33 @@
+name: Standalone repository checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'codex/**']
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test this repository without sibling checkouts
+        env:
+          GOWORK: 'off'
+        run: |
+          go test -race ./...
+          go vet ./...
+          node --check web/app.js
