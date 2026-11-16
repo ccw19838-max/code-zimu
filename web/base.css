@@ -54,7 +54,9 @@ input, select { border: 1px solid var(--brand-line); border-radius: var(--contro
 #catalog-error { color: #8a5733; background: var(--brand-warm-soft); border: 1px solid var(--brand-warm-line); border-radius: var(--control-radius); padding: 11px 15px; margin: 0 0 20px; font-size: 12px; }
 dialog { border: 1px solid var(--brand-line); border-radius: var(--radius); background: var(--brand-surface); color: var(--brand-text); box-shadow: 0 24px 100px #252b272b; max-height: 90vh; }
 dialog::backdrop { background: #252b274b; backdrop-filter: blur(4px); }
-#catalog-login-dialog { width: 440px; padding: 28px; }
+#catalog-login-dialog { width: 440px; padding: 0; overflow: hidden; }
+#catalog-login-dialog[open] { display: flex; flex-direction: column; }
+#catalog-login-form { padding: 28px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .catalog-login-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .catalog-dialog-eyebrow { font-size: 9px; letter-spacing: .14em; color: var(--brand-muted); }
 .catalog-login-heading h2 { margin: 5px 0 0; font-size: 23px; }
@@ -68,3 +70,15 @@ dialog::backdrop { background: #252b274b; backdrop-filter: blur(4px); }
 #catalog-login-submit { width: 100%; font-size: 13px; padding: 10px 15px; }
 .catalog-login-note { color: var(--brand-muted); font-size: 11px; margin: 17px 0 0; line-height: 1.9; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+.catalog-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.catalog-settings-section { min-width: 0; padding: 24px; border: 1px solid var(--brand-line); border-radius: var(--radius); background: var(--brand-surface); }
+.catalog-settings-section h2 { margin: 0 0 18px; font-size: 18px; }
+.catalog-settings-section p { font-size: 12px; color: var(--brand-muted); }
+.catalog-settings-section dl { margin: 0 0 20px; display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 12px; font-size: 13px; }
+.catalog-settings-section dt { color: var(--brand-muted); }
+.catalog-settings-section dd { margin: 0; overflow-wrap: anywhere; }
+.catalog-settings-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.catalog-settings-actions a { border: 1px solid var(--brand-line); border-radius: var(--control-radius); padding: 9px 15px; }
+.catalog-settings-list { padding-left: 20px; font-size: 12px; line-height: 2; overflow-wrap: anywhere; }
+#catalog-settings-error { color: #a34242; }

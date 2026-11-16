@@ -2,7 +2,9 @@
 (() => {
   const $ = (selector) => document.querySelector(selector);
   let session = null, generation = 0, loadSequence = 0, authBusy = false, checkingSession = false, authOperation = 0;
-  let selectedPage = location.hash === "#rules" ? "rules" : "projects";
+  const pageFromHash = () => ["rules", "settings"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "projects";
+  const isAdmin = () => !!session?.authenticated && session.role === "admin";
+  let selectedPage = pageFromHash();
   // This key belongs only to the standalone catalog origin. It contains no user data.
   const logoutKey = "github-catalog-session-ended-v1";
   let lastLogoutNotice = "", channel = null;
@@ -23,11 +25,12 @@
     $("#catalog-admin-login").disabled = busy || !session;
     $("#catalog-admin-logout").disabled = busy;
     $("#catalog-reload").disabled = busy;
-    const rules = selectedPage === "rules";
-    $("#catalog-page-title").textContent = rules ? "团队规范" : "项目目录";
-    $("#catalog-page-subtitle").textContent = rules ? "团队协作、项目交付与维护约定" : "了解项目用途、已有成果和二次开发入口";
+    const rules = selectedPage === "rules", settings = selectedPage === "settings";
+    $('[data-catalog-page="settings"]').hidden = !isAdmin();
+    $("#catalog-page-title").textContent = settings ? "管理中心" : rules ? "团队规范" : "项目目录";
+    $("#catalog-page-subtitle").textContent = settings ? "集中管理目录更新、资料维护与协作入口" : rules ? "团队协作、项目交付与维护约定" : "了解项目用途、已有成果和二次开发入口";
     $("#catalog-page-art").src = rules ? "/icons/history.svg" : "/icons/project-folder.svg";
-    $("#catalog-reload-label").textContent = rules ? "刷新规范" : "刷新目录";
+    $("#catalog-reload-label").textContent = settings ? "重新检查" : rules ? "刷新规范" : "刷新目录";
     document.querySelectorAll("[data-catalog-page]").forEach((button) => {
       const selected = button.dataset.catalogPage === selectedPage;
       button.classList.toggle("selected", selected);
@@ -95,6 +98,11 @@
   function actions(epoch) { return { request: api, reload: session ? load : start, isCurrent: () => active(epoch) && selectedPage === "projects" && !authBusy && !checkingSession }; }
   async function load() {
     if (!session || authBusy || checkingSession) return;
+    if (selectedPage === "settings" && !isAdmin()) {
+      selectedPage = "projects";
+      history.replaceState(null, "", "#projects");
+      updateHeader();
+    }
     const epoch = generation, sequence = ++loadSequence, revision = window.githubCatalog.generation(), page = selectedPage;
     $("#catalog-error").hidden = true;
     $("#catalog-updated").textContent = page === "rules" ? "正在读取规范" : "正在读取目录";
@@ -111,11 +119,11 @@
       if (revision !== window.githubCatalog.generation()) { void load(); return; }
       // A different tab can change the shared cookie before this tab rechecks its session.
       if (!session.authenticated) data = { ...data, can_refresh: false, projects: data.mode === "demo" ? data.projects : (data.projects || []).filter((project) => project.visibility === "public") };
-      $("#content").innerHTML = window.githubCatalog.view(data, actions(epoch));
+      $("#content").innerHTML = page === "settings" ? window.catalogSettings.view(data, session) : window.githubCatalog.view(data, actions(epoch));
       $("#catalog-updated").textContent = data.mode === "demo" ? "示例目录 · 自由浏览" : "目录已更新";
     } catch (error) {
       if (!active(epoch) || sequence !== loadSequence || selectedPage !== page || authBusy || checkingSession) return;
-      $("#content").innerHTML = page === "rules" ? window.catalogRules.errorView(error.message) : window.githubCatalog.errorView(error.message, actions(epoch));
+      $("#content").innerHTML = page === "settings" ? window.catalogSettings.errorView(error.message) : page === "rules" ? window.catalogRules.errorView(error.message) : window.githubCatalog.errorView(error.message, actions(epoch));
       $("#catalog-updated").textContent = page === "rules" ? "规范暂不可用" : "目录暂不可用";
     }
   }
@@ -166,15 +174,42 @@
   document.querySelectorAll("[data-catalog-page]").forEach((button) => {
     button.onclick = () => {
       const next = button.dataset.catalogPage;
-      if (next !== "projects" && next !== "rules") return;
+      if (!["projects", "rules", "settings"].includes(next) || next === "settings" && !isAdmin()) return;
       location.hash = next;
       selectPage(next);
     };
   });
-  window.addEventListener("hashchange", () => selectPage(location.hash === "#rules" ? "rules" : "projects"));
+  window.addEventListener("hashchange", () => selectPage(pageFromHash()));
   document.addEventListener("click", (event) => {
-    if (event.target.closest("#gh-rules-retry")) void load();
+    if (event.target.closest("#gh-rules-retry, #catalog-settings-retry")) void load();
+    if (event.target.closest("#catalog-settings-logout") && isAdmin()) $("#catalog-admin-logout").click();
+    if (event.target.closest("#catalog-settings-workbench") && isAdmin()) {
+      const url = navigationURL(session.navigation_url);
+      if (url) location.assign(url);
+    }
+    const refresh = event.target.closest("#catalog-settings-refresh");
+    if (refresh && !refresh.disabled && isAdmin() && !authBusy && !checkingSession) void refreshSettings(refresh);
   });
+  async function refreshSettings(button) {
+    const epoch = generation;
+    button.disabled = true;
+    button.textContent = "正在更新…";
+    $("#catalog-settings-error").hidden = true;
+    try {
+      await api("/api/github/refresh", "POST", {});
+      if (active(epoch) && selectedPage === "settings") await load();
+    } catch (error) {
+      if (active(epoch) && selectedPage === "settings") {
+        $("#content").innerHTML = window.catalogSettings.errorView(error.message);
+        $("#catalog-updated").textContent = "目录暂不可用";
+      }
+    } finally {
+      if (button.isConnected) {
+        button.disabled = false;
+        button.textContent = session?.mode === "demo" ? "刷新演示目录" : "从 GitHub 更新";
+      }
+    }
+  }
   $("#catalog-admin-login").onclick = () => {
     $("#catalog-login-form").reset();
     $("#catalog-login-error").textContent = "";

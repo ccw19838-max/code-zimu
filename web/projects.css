@@ -202,7 +202,7 @@
 #gh-rule-templates { margin-top: 28px; scroll-margin-top: 64px; }
 #gh-rule-templates .gh-template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 /* Simulation remains explicitly separate from actual GitHub membership. */
-#github-flow-dialog { width: 610px; max-height: calc(100vh - 64px); padding: 27px; overflow-y: auto; border: 1px solid var(--brand-line); border-radius: var(--radius); background: var(--brand-surface); color: var(--brand-text); }
+#github-flow-dialog { width: 610px; max-height: calc(100vh - 64px); padding: 0; overflow: hidden; border: 1px solid var(--brand-line); border-radius: var(--radius); background: var(--brand-surface); color: var(--brand-text); }
 .gh-flow-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .gh-flow-heading h2 { font-size: 22px; margin: 7px 0 0; }
 .gh-flow-heading > button { padding: 7px; display: flex; border: 0; background: transparent; }
@@ -225,3 +225,8 @@
 @media (max-width: 1390px) { .gh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.gh-controls { flex-direction: column; align-items: stretch; gap: 13px; }.gh-search, .gh-filters { flex: auto; }.gh-catalog .gh-card-preview, .gh-card-placeholder { height: 205px; }.gh-stats { gap: 14px; }.gh-stats > div { padding: 17px 19px; }.gh-rules-flow { gap: 9px; }.gh-rules-flow > li { padding: 14px; } }
 @media (min-width: 1650px) { .gh-card-preview, .gh-card-placeholder { height: 210px; }.gh-card-body { padding: 21px 24px 0; }.gh-card > :is(.gh-card-top, .gh-owner, h3, .gh-description, .gh-card-scenarios, .gh-card-outcome, .gh-card-capabilities, .gh-topics, .gh-card-details) { margin-left: 24px; margin-right: 24px; } }
 @media (prefers-reduced-motion: reduce) { .gh-card { transition: none; } }
+
+/* Keep native scrollbars inside the rounded modal shell. */
+#github-flow-dialog[open] { display: flex; flex-direction: column; }
+#github-flow-dialog > .gh-flow-heading { flex: none; padding: 27px 27px 0; }
+.gh-flow-scroll { padding: 0 27px 27px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
